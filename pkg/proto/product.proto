@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "./pkg/proto/pb";
+
+service ProductService{
+    rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse){}
+    rpc FindOne (FindOneRequest) returns (FindOneResponse){}
+    rpc DecreaseStock (DecreaseStockRequest) returns (DecreaseStockResponse){}
+}
+
+//create product
+message CreateProductRequest{
+    string name = 1;
+    string sku = 2;
+    int64 stock = 3;
+    int64 price = 4;
+}
+
+message CreateProductResponse{
+    int64 status = 1;
+    string error = 2;
+    int64 id = 3;
+}
+
+//findone
+message FindOneData{
+    int64 ID = 1;
+    string name = 2;
+    string sku = 3;
+    int64 stock = 4;
+    int64 price = 5;
+}
+
+message FindOneRequest{
+    int64 ID = 1;
+}
+
+message FindOneResponse{
+    int64 status = 1;
+    string error = 2;
+    FindOneData data = 3;
+}
+
+//decrease stock
+message DecreaseStockRequest{
+    int64 ID = 1;
+    int64 orderID = 2;
+}
+
+message DecreaseStockResponse{
+    int64 status = 1;
+    string error = 2;
+}
