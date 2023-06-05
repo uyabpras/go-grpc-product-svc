@@ -14,11 +14,28 @@ type Server struct {
 }
 
 func (s *Server) CreateProduct(ctx context.Context, req *pb.CreateProductRequest) (*pb.CreateProductResponse, error) {
-	var product *models.Product
+	var product models.Product
 
 	product.Name = req.Name
 	product.Stock = req.Stock
 	product.Price = req.Price
+
+	if result := s.H.DB.Find(&product, req.Name); result != nil {
+		if result := s.H.DB.Where(&models.Product{Name: req.Name}).First(&product); result.Error != nil {
+			return &pb.CreateProductResponse{
+				Status: http.StatusConflict,
+				Error:  "Stock already updated",
+			}, nil
+		}
+
+		product.Stock = product.Stock + req.Stock
+		s.H.DB.Save(&product)
+
+		return &pb.CreateProductResponse{
+			Status: http.StatusOK,
+			Id:     product.Id,
+		}, nil
+	}
 
 	if result := s.H.DB.Create(&product); result.Error != nil {
 		return &pb.CreateProductResponse{
@@ -29,14 +46,15 @@ func (s *Server) CreateProduct(ctx context.Context, req *pb.CreateProductRequest
 
 	return &pb.CreateProductResponse{
 		Status: http.StatusCreated,
-		Id:     product.ID,
+		Id:     product.Id,
 	}, nil
+
 }
 
 func (s *Server) FindOne(ctx context.Context, req *pb.FindOneRequest) (*pb.FindOneResponse, error) {
 	var product models.Product
 
-	if result := s.H.DB.Find(&product, req.ID); result.Error != nil {
+	if result := s.H.DB.Find(&product, req.Id); result.Error != nil {
 		return &pb.FindOneResponse{
 			Status: http.StatusNotFound,
 			Error:  result.Error.Error(),
@@ -44,7 +62,7 @@ func (s *Server) FindOne(ctx context.Context, req *pb.FindOneRequest) (*pb.FindO
 	}
 
 	data := &pb.FindOneData{
-		ID:    product.ID,
+		Id:    product.Id,
 		Name:  product.Name,
 		Stock: product.Stock,
 		Price: product.Price,
@@ -59,35 +77,36 @@ func (s *Server) FindOne(ctx context.Context, req *pb.FindOneRequest) (*pb.FindO
 func (s *Server) DecreaseStock(ctx context.Context, req *pb.DecreaseStockRequest) (*pb.DecreaseStockResponse, error) {
 	var product models.Product
 
-	if result := s.H.DB.First(&product, req.ID); result.Error != nil {
+	if result := s.H.DB.First(&product, req.Id); result.Error != nil {
 		return &pb.DecreaseStockResponse{
 			Status: http.StatusNotFound,
 			Error:  result.Error.Error(),
 		}, nil
 	}
 
-	if product.Stock <= 0 {
+	if product.Stock < req.Quantity {
 		return &pb.DecreaseStockResponse{
 			Status: http.StatusConflict,
-			Error:  "stock too low",
+			Error:  "Stock too low",
 		}, nil
 	}
 
 	var log models.Stock_decrease
 
-	if result := s.H.DB.Where(&models.Stock_decrease{OrderID: req.OrderID}).First(&log); result.Error != nil {
+	if result := s.H.DB.Where(&models.Stock_decrease{OrderID: req.OrderId}).First(&log); result.Error == nil {
 		return &pb.DecreaseStockResponse{
 			Status: http.StatusConflict,
-			Error:  "stock already decrease",
+			Error:  "Stock already decreased",
 		}, nil
 	}
 
-	product.Stock = product.Stock - 1
+	product.Stock = product.Stock - req.Quantity
 
 	s.H.DB.Save(&product)
 
-	log.OrderID = req.OrderID
-	log.ProductRefer = product.ID
+	log.OrderID = req.OrderId
+	log.ProductRefer = product.Id
+	log.Quantity = req.Quantity
 
 	s.H.DB.Create(&log)
 

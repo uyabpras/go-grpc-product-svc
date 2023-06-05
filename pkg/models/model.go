@@ -4,10 +4,11 @@ type Stock_decrease struct {
 	ID           int64 `json:"id" gorm:"primary_key"`
 	OrderID      int64 `json:"order_id"`
 	ProductRefer int64 `json:"product_id"`
+	Quantity     int64 `json:"quantity"`
 }
 
 type Product struct {
-	ID             int64          `json:"id" gorm:"primary_key"`
+	Id             int64          `json:"id" gorm:"primary_key"`
 	Name           string         `json:"name" `
 	Stock          int64          `json:"stock"`
 	Price          int64          `json:"price"`
