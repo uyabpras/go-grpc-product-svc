@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/uyabpras/go-grpc-product-svc/pkg/db"
@@ -120,8 +119,6 @@ func (s *Server) ListProduk(ctx context.Context, req *pb.ListproductsRequest) (*
 	var products []models.Product
 	var count int64
 
-	fmt.Println(req.Page)
-
 	if req.Page == 0 {
 		req.Page = 1
 	}
@@ -132,7 +129,6 @@ func (s *Server) ListProduk(ctx context.Context, req *pb.ListproductsRequest) (*
 
 	offset := (req.Page - 1) * req.Limit
 
-	fmt.Println(req.Page, req.Limit, offset)
 	if result := s.H.DB.Offset(int(offset)).Limit(int(req.Limit)).Find(&products); result.Error != nil {
 		return &pb.ListProductResponse{
 			Status: http.StatusNotFound,
