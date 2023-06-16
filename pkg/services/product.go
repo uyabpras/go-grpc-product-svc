@@ -162,3 +162,32 @@ func (s *Server) ListProduk(ctx context.Context, req *pb.ListproductsRequest) (*
 	}
 	return response, nil
 }
+
+func (s *Server) DownloadDataProduct(ctx context.Context, req *pb.DownloadDataProductRequest) (*pb.DownloadDataProductResponse, error) {
+	var data []*pb.Product
+
+	if req.Direction == 0 {
+		if result := s.H.DB.Limit(int(req.TotalData)).Order("id ASC").Find(&data); result.Error != nil {
+			return &pb.DownloadDataProductResponse{
+				Status: http.StatusConflict,
+				Error:  result.Error.Error(),
+			}, nil
+		}
+	} else if req.Direction == 1 {
+		if result := s.H.DB.Limit(int(req.TotalData)).Order("id DESC").Find(&data); result.Error != nil {
+			return &pb.DownloadDataProductResponse{
+				Status: http.StatusConflict,
+				Error:  result.Error.Error(),
+			}, nil
+		}
+	} else {
+		return &pb.DownloadDataProductResponse{
+			Status: http.StatusBadRequest,
+			Error:  "Bad request",
+		}, nil
+	}
+
+	return &pb.DownloadDataProductResponse{
+		Data: data,
+	}, nil
+}

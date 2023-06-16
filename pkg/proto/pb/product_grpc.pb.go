@@ -26,6 +26,7 @@ type ProductServiceClient interface {
 	FindOne(ctx context.Context, in *FindOneRequest, opts ...grpc.CallOption) (*FindOneResponse, error)
 	DecreaseStock(ctx context.Context, in *DecreaseStockRequest, opts ...grpc.CallOption) (*DecreaseStockResponse, error)
 	ListProduk(ctx context.Context, in *ListproductsRequest, opts ...grpc.CallOption) (*ListProductResponse, error)
+	DownloadDataProduct(ctx context.Context, in *DownloadDataProductRequest, opts ...grpc.CallOption) (*DownloadDataProductResponse, error)
 }
 
 type productServiceClient struct {
@@ -72,6 +73,15 @@ func (c *productServiceClient) ListProduk(ctx context.Context, in *ListproductsR
 	return out, nil
 }
 
+func (c *productServiceClient) DownloadDataProduct(ctx context.Context, in *DownloadDataProductRequest, opts ...grpc.CallOption) (*DownloadDataProductResponse, error) {
+	out := new(DownloadDataProductResponse)
+	err := c.cc.Invoke(ctx, "/product.ProductService/DownloadDataProduct", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations should embed UnimplementedProductServiceServer
 // for forward compatibility
@@ -80,6 +90,7 @@ type ProductServiceServer interface {
 	FindOne(context.Context, *FindOneRequest) (*FindOneResponse, error)
 	DecreaseStock(context.Context, *DecreaseStockRequest) (*DecreaseStockResponse, error)
 	ListProduk(context.Context, *ListproductsRequest) (*ListProductResponse, error)
+	DownloadDataProduct(context.Context, *DownloadDataProductRequest) (*DownloadDataProductResponse, error)
 }
 
 // UnimplementedProductServiceServer should be embedded to have forward compatible implementations.
@@ -97,6 +108,9 @@ func (UnimplementedProductServiceServer) DecreaseStock(context.Context, *Decreas
 }
 func (UnimplementedProductServiceServer) ListProduk(context.Context, *ListproductsRequest) (*ListProductResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProduk not implemented")
+}
+func (UnimplementedProductServiceServer) DownloadDataProduct(context.Context, *DownloadDataProductRequest) (*DownloadDataProductResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DownloadDataProduct not implemented")
 }
 
 // UnsafeProductServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -182,6 +196,24 @@ func _ProductService_ListProduk_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_DownloadDataProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DownloadDataProductRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).DownloadDataProduct(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/product.ProductService/DownloadDataProduct",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).DownloadDataProduct(ctx, req.(*DownloadDataProductRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -204,6 +236,10 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListProduk",
 			Handler:    _ProductService_ListProduk_Handler,
+		},
+		{
+			MethodName: "DownloadDataProduct",
+			Handler:    _ProductService_DownloadDataProduct_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

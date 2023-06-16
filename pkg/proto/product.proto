@@ -9,6 +9,7 @@ service ProductService {
     rpc FindOne(FindOneRequest) returns (FindOneResponse) {}
     rpc DecreaseStock(DecreaseStockRequest) returns (DecreaseStockResponse) {}
     rpc ListProduk(ListproductsRequest)returns (ListProductResponse) {}
+    rpc DownloadDataProduct(DownloadDataProductRequest) returns (DownloadDataProductResponse){}
   }
   
   // CreateProduct
@@ -72,4 +73,20 @@ message ListProductResponse{
   string error = 2;
   repeated Product data = 3;
   int64 total_pages = 4;
+}
+
+enum Direction{
+  ASC = 0;
+  DESC = 1;
+}
+
+message DownloadDataProductRequest{
+  int64 total_data = 1;
+  Direction direction = 2;
+}
+
+message DownloadDataProductResponse{
+  int64 status = 1;
+  string error = 2;
+  repeated Product data = 3;
 }
